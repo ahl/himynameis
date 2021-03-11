@@ -1,0 +1,9 @@
+[package]
+name = "himynameis"
+version = "0.1.0"
+authors = ["Adam H. Leventhal <ahl@oxide.computer>"]
+edition = "2018"
+
+[dependencies]
+addr2line = "0.14.1"
+memmap = "0.7.0"
