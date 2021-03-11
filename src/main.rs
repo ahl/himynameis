@@ -20,19 +20,11 @@ fn shady() {
         rip
     };
     println!(
-        "Hello, world! {} {}",
+        "Hello, world! {} {:x}",
         std::env::current_exe().unwrap().to_string_lossy(),
         rip
     );
 
-    extern "C" {
-        #[link_name = "\x01section$start$__TEXT$__text"]
-        static text: usize;
-    }
-
-    let v = unsafe { (&text as *const usize) as usize };
-
-    println!("{} {:x}", v, v);
 
     let path = std::env::current_exe().unwrap();
     let file = File::open(path).unwrap();
@@ -42,25 +34,26 @@ fn shady() {
     let context = Context::new(object).unwrap();
 
     for seg in object.segments() {
-        println!("{:?} {:x?}", seg.name(), seg.address());
+        println!("seg {:?} {:x?}", seg.name(), seg.address());
     }
     for sec in object.sections() {
-        println!("{:?} {:x?}", sec.name(), sec.address());
+        println!("sec {:?} {:x?}", sec.name(), sec.address());
     }
 
-    let text_sec = object.section_by_name("__text").unwrap();
-    let rip = rip - (v as u64) + text_sec.address();
+    //let rip = rip - (v as u64) + text_sec.address();
     println!("{} {:x}", rip, rip);
-
-    let mut frames = context.find_frames(rip).unwrap();
-
-    let frame = frames.next().unwrap();
-
-    println!("{:?}", frame.is_none());
 
     let sym = symbols.get(rip);
 
     println!("{:?}", sym);
+
+    let mut frames = context.find_frames(rip).unwrap();
+
+    while let Some(frame) = frames.next().unwrap() {
+
+        println!("{:?}", frame.function.unwrap().raw_name());
+    }
+
 
     let xx = context.find_location(rip).unwrap().unwrap();
 
