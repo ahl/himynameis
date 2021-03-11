@@ -1,11 +1,16 @@
 #![feature(asm)]
 
-use std::fs::File;
+use std::{
+    ffi::CStr,
+    fs::File,
+    ptr::{null, null_mut},
+};
 
 use addr2line::{
     object::{Object, ObjectSection, ObjectSegment},
     Context,
 };
+use libc::{c_void, Dl_info};
 
 fn main() {
     slim();
@@ -29,6 +34,24 @@ fn shady() {
         #[link_name = "\x01section$start$__TEXT$__text"]
         static text: usize;
     }
+
+    unsafe {
+        let mut info = Dl_info {
+            dli_fname: null(),
+            dli_fbase: null_mut(),
+            dli_sname: null(),
+            dli_saddr: null_mut(),
+        };
+        let _ = libc::dladdr(rip as *const c_void, &mut info as *mut _);
+
+        let s = info.dli_sname;
+
+        let s = CStr::from_ptr(s);
+
+        println!("{}", s.to_str().unwrap());
+    }
+
+    //println!("{}", CString::from_raw(info.dli_sname).to_str());
 
     let v = unsafe { (&text as *const usize) as usize };
 
